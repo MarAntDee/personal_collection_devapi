@@ -4,4 +4,5 @@ export interface User extends firestore.DocumentData {
     mobile: string,
     pin?: string,
     dateCreated: firestore.Timestamp,
+    deviceId: string,
 }

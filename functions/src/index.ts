@@ -3,7 +3,10 @@ import * as admin from "firebase-admin";
 import * as express from "express";
 import * as basicAuth from "express-basic-auth";
 import * as cors from "cors";
-import { checkMobile, resendCheckMobile, verifyCheckMobile } from "./apis/auth";
+
+import { checkMobile, resendCheckMobile, verifyCheckMobile } from "./apis/checkMobile";
+import { setPin } from "./apis/pin";
+import { getUser } from "./apis/user";
 
 admin.initializeApp();
 admin.firestore().settings({timestampsInSnapshots: true});
@@ -21,5 +24,9 @@ app.use(basicAuth({
 app.post("/dev/MobileCheck", checkMobile);
 app.put("/dev/MobileCheck", resendCheckMobile);
 app.delete("/dev/MobileCheck", verifyCheckMobile);
+
+app.post("/dev/SetPin", setPin);
+
+app.get("/dev/User", getUser);
 
 exports.api = functions.region('asia-southeast1').https.onRequest(app);

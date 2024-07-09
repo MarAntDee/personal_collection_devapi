@@ -52,7 +52,7 @@ export async function resendCheckMobile(req: any, res: any) {
         res.send({
             'status': true,
             'code': 200,
-            'message': 'Checking Mobile Successful',
+            'message': 'Resending OTP Successful',
             'data': {
                 "needMobilePin": !hasPin,
                 "hasAccount": hasAccount,
