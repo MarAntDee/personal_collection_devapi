@@ -1,7 +1,6 @@
 import { firestore } from "firebase-admin";
 import { User } from "../models/user";
-import { beginOTP, resendOTP } from "./otp";
-import { OtpContext } from "../models/otp";
+import { beginOTP, resendOTP, verifyOTP } from "./otp";
 
 export async function checkMobile(req: any, res: any) {
     try {
@@ -75,25 +74,7 @@ export async function verifyCheckMobile(req: any, res: any) {
         const _deviceId: string | undefined = req.body.deviceId;
         if (!_pincode || !_deviceId) throw "Bad Request";
 
-        const _otpQuery = firestore().collection("servers").doc("dev").collection("otps").where('deviceId', '==', _deviceId).where('purpose', '==', "CHECK MOBILE").orderBy('dateCreated', 'desc');
-        const _otpDoc = (await _otpQuery.get()).docs.filter((doc) => {
-            const _otpContext = doc.data() as OtpContext;
-            return !_otpContext.used;
-        })[0];
-        if (_otpDoc == undefined) throw "OTP Transaction already used, please try again";
-
-        const _otpContext = _otpDoc.data() as OtpContext;
-
-        const _otps = _otpContext.otps;
-        if (!_otps.some((otp) => otp == _pincode)) throw "Invalid OTP";
-        if (_otps.reverse()[0] != _pincode) throw "Can not use expired OTP";
-
-        const _isExpired = _otpContext.dateExpired.seconds < firestore.Timestamp.fromDate(new Date()).seconds;
-        if (_isExpired) throw "OTP has expired";
-
-        await _otpDoc.ref.update({
-            'used': true
-        });
+        await verifyOTP(_deviceId, _pincode, "CHECK MOBILE");
 
         res.send({
             'status': true,

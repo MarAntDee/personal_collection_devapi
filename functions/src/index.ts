@@ -5,7 +5,7 @@ import * as basicAuth from "express-basic-auth";
 import * as cors from "cors";
 
 import { checkMobile, resendCheckMobile, verifyCheckMobile } from "./apis/checkMobile";
-import { setPin } from "./apis/pin";
+import { forgotPin, resendForgotPin, setPin, verifyForgotPin } from "./apis/pin";
 import { getUser } from "./apis/user";
 
 admin.initializeApp();
@@ -26,6 +26,9 @@ app.put("/dev/MobileCheck", resendCheckMobile);
 app.delete("/dev/MobileCheck", verifyCheckMobile);
 
 app.post("/dev/SetPin", setPin);
+app.post("/dev/ForgotPin", forgotPin);
+app.put("/dev/ForgotPin", resendForgotPin);
+app.delete("/dev/ForgotPin", verifyForgotPin);
 
 app.get("/dev/User", getUser);
 

@@ -37,6 +37,28 @@ export const resendOTP = async (deviceId: string, mobile: string, purpose: strin
     return _otp;
 }
 
+export const verifyOTP = async (deviceId: string, pincode: string, purpose: string,) => {
+    const _otpQuery = firestore().collection("servers").doc("dev").collection("otps").where('deviceId', '==', deviceId).where('purpose', '==', purpose).orderBy('dateCreated', 'desc');
+    const _otpDoc = (await _otpQuery.get()).docs.filter((doc) => {
+        const _otpContext = doc.data() as OtpContext;
+        return !_otpContext.used;
+    })[0];
+    if (_otpDoc == undefined) throw "OTP Transaction already used, please try again";
+
+    const _otpContext = _otpDoc.data() as OtpContext;
+
+    const _otps = _otpContext.otps;
+    if (!_otps.some((otp) => otp == pincode)) throw "Invalid OTP";
+    if (_otps.reverse()[0] != pincode) throw "Can not use expired OTP";
+
+    const _isExpired = _otpContext.dateExpired.seconds < firestore.Timestamp.fromDate(new Date()).seconds;
+    if (_isExpired) throw "OTP has expired";
+
+    await _otpDoc.ref.update({
+        'used': true
+    });
+}
+
 function _generate(n: number) : string {
     var add = 1, max = 12 - add;   // 12 is the min safe number Math.random() can generate without it starting to pad the end with zeros.   
     
