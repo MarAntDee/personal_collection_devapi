@@ -6,9 +6,9 @@ export async function getUser(req: any, res: any) {
         const _mobile: string | undefined = req.query.mobileNumber;
         const _deviceId: string | undefined = req.query.deviceId;
         const _pin: string | undefined = req.query.mpin;
-        const _isLoggingIn: boolean = req.query.isLoggingin ?? false;
+        const _isLoggingIn: boolean = JSON.parse(req.query.isLoggingin ?? "false");
 
-        if (!_mobile || _deviceId || !_pin) throw "Bad Request";
+        if (!_mobile || !_deviceId || !_pin) throw "Bad Request";
 
         const _usersRef = firestore().collection("servers").doc("dev").collection("users");
         const _savedUserDoc = (await _usersRef.where("mobile", "==", _mobile).limit(1).get()).docs[0];
@@ -16,9 +16,10 @@ export async function getUser(req: any, res: any) {
         if (_savedUserDoc == undefined) throw "User not found";
 
         const _user = _savedUserDoc.data() as User;
+        
         if (_user.pin == undefined) throw "Pin not yet set."
         if (_user.pin != _pin) throw "Invalid Pin";
-        if (!_isLoggingIn && (_user.deviceId != _deviceId!)) throw "Account used on another device";
+        if (!_isLoggingIn && (_user.deviceId != _deviceId)) throw "Account used on another device";
 
         _user.deviceId = _deviceId!;
         
