@@ -21,7 +21,7 @@ export async function setPin(req: any, res: any) {
             _userObj['deviceId'] = _deviceId;
         }
         
-        await (_savedUserDoc ?? _newUserDoc).ref.set(
+        await (_savedUserDoc?.ref ?? _newUserDoc).set(
             _userObj, {merge: true},
         );        
 
