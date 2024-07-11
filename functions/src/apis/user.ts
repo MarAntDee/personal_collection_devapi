@@ -6,7 +6,7 @@ export async function getUser(req: any, res: any) {
         const _mobile: string | undefined = req.query.mobileNumber;
         const _deviceId: string | undefined = req.query.deviceId;
         const _pin: string | undefined = req.query.mpin;
-        const _isLoggingIn: boolean = JSON.parse(req.query.isLoggingin ?? "false");
+        const _isLoggingIn: boolean = JSON.parse(req.query.isLoggingIn ?? "false");
 
         if (!_mobile || !_deviceId || !_pin) throw "Bad Request";
 

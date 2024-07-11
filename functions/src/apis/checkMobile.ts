@@ -70,8 +70,8 @@ export async function resendCheckMobile(req: any, res: any) {
 
 export async function verifyCheckMobile(req: any, res: any) {
     try {
-        const _pincode: string | undefined = req.body.pincode;
-        const _deviceId: string | undefined = req.body.deviceId;
+        const _pincode: string | undefined = req.query.pincode;
+        const _deviceId: string | undefined = req.query.deviceId;
         if (!_pincode || !_deviceId) throw "Bad Request";
 
         await verifyOTP(_deviceId, _pincode, "CHECK MOBILE");
