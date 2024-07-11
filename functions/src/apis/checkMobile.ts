@@ -1,5 +1,5 @@
 import { firestore } from "firebase-admin";
-import { User } from "../models/user";
+import { FirUser } from "../models/user";
 import { beginOTP, resendOTP, verifyOTP } from "./otp";
 
 export async function checkMobile(req: any, res: any) {
@@ -11,7 +11,7 @@ export async function checkMobile(req: any, res: any) {
         const _userQuery = await firestore().collection("servers").doc("dev").collection("users").where("mobile", "==", _mobile).limit(1).get();
 
         const _userDoc = _userQuery.docs[0];
-        const _user = _userDoc?.data() as User | undefined;
+        const _user = _userDoc?.data() as FirUser | undefined;
         const hasAccount: boolean = _user != undefined;
         const hasPin: boolean = _user?.pin != undefined;
 
@@ -44,7 +44,7 @@ export async function resendCheckMobile(req: any, res: any) {
         const _userQuery = await firestore().collection("servers").doc("dev").collection("users").where("mobile", "==", _mobile).limit(1).get();
 
         const _userDoc = _userQuery.docs[0];
-        const _user = _userDoc?.data() as User | undefined;
+        const _user = _userDoc?.data() as FirUser | undefined;
         const hasAccount: boolean = _user != undefined;
         const hasPin: boolean = _user?.pin != undefined;
 

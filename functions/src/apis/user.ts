@@ -1,5 +1,5 @@
 import { firestore } from "firebase-admin";
-import { User } from "../models/user";
+import { FirUser } from "../models/user";
 
 export async function getUser(req: any, res: any) {
     try {
@@ -15,7 +15,7 @@ export async function getUser(req: any, res: any) {
 
         if (_savedUserDoc == undefined) throw "User not found";
 
-        const _user = _savedUserDoc.data() as User;
+        const _user = _savedUserDoc.data() as FirUser;
         
         if (_user.pin == undefined) throw "Pin not yet set."
         if (_user.pin != _pin) throw "Invalid Pin";
@@ -31,7 +31,11 @@ export async function getUser(req: any, res: any) {
             'status': true,
             'code': 200,
             'message': _isLoggingIn ? 'Logging in Successful' : 'Getting User Successful',
-            'data': _user,
+            'data': {
+                'id': _savedUserDoc.id,
+                'mobileNumber': _user.mobile,
+                'dateCreated': _user.dateCreated,
+            },
         });
 
     } catch (e) {
