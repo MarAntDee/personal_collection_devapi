@@ -25,7 +25,7 @@ export const resendOTP = async (deviceId: string, mobile: string, purpose: strin
         const _otpContext = doc.data() as OtpContext;
         return !_otpContext.used;
     })[0];
-    if (_otpDoc == undefined) return await beginOTP(deviceId, mobile, purpose);
+    if (!_otpDoc.exists || _otpDoc == undefined) return await beginOTP(deviceId, mobile, purpose);
 
     const _otp = _generate(6);
     const _expiredAt = firestore.Timestamp.fromDate(new Date(new Date().getTime() + (5*60000)));

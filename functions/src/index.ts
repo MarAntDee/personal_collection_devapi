@@ -4,7 +4,7 @@ import * as express from "express";
 import * as basicAuth from "express-basic-auth";
 import * as cors from "cors";
 
-import { checkMobile, resendCheckMobile, verifyCheckMobile } from "./apis/checkMobile";
+import { checkBuilder, resendCheckBuilder, verifyCheckBuilder, } from "./apis/checkBuilder";
 import { forgotPin, resendForgotPin, setPin, verifyForgotPin } from "./apis/pin";
 import { getUser } from "./apis/user";
 
@@ -21,9 +21,9 @@ app.use(basicAuth({
     },
 }));
 
-app.post("/dev/MobileCheck", checkMobile);
-app.put("/dev/MobileCheck", resendCheckMobile);
-app.delete("/dev/MobileCheck", verifyCheckMobile);
+app.post("/dev/BuilderCheck", checkBuilder);
+app.put("/dev/BuilderCheck", resendCheckBuilder);
+app.delete("/dev/BuilderCheck", verifyCheckBuilder);
 
 app.post("/dev/SetPin", setPin);
 app.post("/dev/ForgotPin", forgotPin);

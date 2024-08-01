@@ -2,18 +2,20 @@ import { firestore } from "firebase-admin";
 import { FirUser } from "../models/user";
 import { beginOTP, resendOTP, verifyOTP } from "./otp";
 
-export async function checkMobile(req: any, res: any) {
+export async function checkBuilder(req: any, res: any) {
     try {
-        const _mobile: string | undefined = req.body.mobileNumber;
+        const _dealerCode: string | undefined = req.body.dealerCode;
         const _deviceId: string | undefined = req.body.deviceId;
 
-        if (!_mobile || !_deviceId) throw "Bad Request";
-        const _userQuery = await firestore().collection("servers").doc("dev").collection("users").where("mobile", "==", _mobile).limit(1).get();
+        if (!_dealerCode || !_deviceId) throw "Bad Request";
+        const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
 
-        const _userDoc = _userQuery.docs[0];
+        if (!_userDoc.exists) throw "Builder not found";
+
         const _user = _userDoc?.data() as FirUser | undefined;
-        const hasAccount: boolean = _user != undefined;
-        const hasPin: boolean = _user?.pin != undefined;
+        if (_user == undefined) throw "Builder not found";
+
+        const hasPin: boolean = _user.pin != undefined;
 
         res.send({
             'status': true,
@@ -21,9 +23,8 @@ export async function checkMobile(req: any, res: any) {
             'message': 'Checking Mobile Successful',
             'data': {
                 "needMobilePin": !hasPin,
-                "hasAccount": hasAccount,
-                "mobileNumber": _mobile,
-                "pincode": await beginOTP(_deviceId, _mobile, "CHECK MOBILE"),
+                "mobileNumber": _user.mobile,
+                "pincode": await beginOTP(_deviceId, _user.mobile, "CHECK MOBILE"),
             },
         });
     } catch (e) {
@@ -35,18 +36,19 @@ export async function checkMobile(req: any, res: any) {
     }
 }
 
-export async function resendCheckMobile(req: any, res: any) {
+export async function resendCheckBuilder(req: any, res: any) {
     try {
-        const _mobile: string | undefined = req.body.mobileNumber;
+        const _dealerCode: string | undefined = req.body.dealerCode;
         const _deviceId: string | undefined = req.body.deviceId;
 
-        if (!_mobile || !_deviceId) throw "Bad Request";
-        const _userQuery = await firestore().collection("servers").doc("dev").collection("users").where("mobile", "==", _mobile).limit(1).get();
+        if (!_dealerCode || !_deviceId) throw "Bad Request";
+        const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
 
-        const _userDoc = _userQuery.docs[0];
+        if (!_userDoc.exists) throw "Builder not found";
+
         const _user = _userDoc?.data() as FirUser | undefined;
-        const hasAccount: boolean = _user != undefined;
-        const hasPin: boolean = _user?.pin != undefined;
+        if (_user == undefined) throw "Builder not found";
+        const hasPin: boolean = _user.pin != undefined;
 
         res.send({
             'status': true,
@@ -54,9 +56,8 @@ export async function resendCheckMobile(req: any, res: any) {
             'message': 'Resending OTP Successful',
             'data': {
                 "needMobilePin": !hasPin,
-                "hasAccount": hasAccount,
-                "mobileNumber": _mobile,
-                "pincode": await resendOTP(_deviceId, _mobile, "CHECK MOBILE"),
+                "mobileNumber": _user.mobile,
+                "pincode": await resendOTP(_deviceId, _user.mobile, "CHECK MOBILE"),
             },
         });
     } catch (e) {
@@ -68,7 +69,7 @@ export async function resendCheckMobile(req: any, res: any) {
     }
 }
 
-export async function verifyCheckMobile(req: any, res: any) {
+export async function verifyCheckBuilder(req: any, res: any) {
     try {
         const _pincode: string | undefined = req.query.pincode;
         const _deviceId: string | undefined = req.query.deviceId;

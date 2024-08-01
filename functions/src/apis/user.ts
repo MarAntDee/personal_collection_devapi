@@ -3,19 +3,19 @@ import { FirUser } from "../models/user";
 
 export async function getUser(req: any, res: any) {
     try {
-        const _mobile: string | undefined = req.query.mobileNumber;
+        const _dealerCode: string | undefined = req.query.dealerCode;
         const _deviceId: string | undefined = req.query.deviceId;
         const _pin: string | undefined = req.query.mpin;
         const _isLoggingIn: boolean = JSON.parse(req.query.isLoggingIn ?? "false");
 
-        if (!_mobile || !_deviceId || !_pin) throw "Bad Request";
+        if (!_dealerCode || !_deviceId || !_pin) throw "Bad Request";
 
-        const _usersRef = firestore().collection("servers").doc("dev").collection("users");
-        const _savedUserDoc = (await _usersRef.where("mobile", "==", _mobile).limit(1).get()).docs[0];
+        const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
 
-        if (_savedUserDoc == undefined) throw "User not found";
+        if (!_userDoc.exists) throw "Builder not found";
 
-        const _user = _savedUserDoc.data() as FirUser;
+        const _user = _userDoc?.data() as FirUser | undefined;
+        if (_user == undefined) throw "Builder not found";
         
         if (_user.pin == undefined) throw "Pin not yet set."
         if (_user.pin != _pin) throw "Invalid Pin";
@@ -23,7 +23,7 @@ export async function getUser(req: any, res: any) {
 
         _user.deviceId = _deviceId!;
         
-        if (_isLoggingIn) await _savedUserDoc.ref.update(
+        if (_isLoggingIn) await _userDoc.ref.update(
             {'deviceId': _deviceId},
         );        
 
@@ -32,7 +32,7 @@ export async function getUser(req: any, res: any) {
             'code': 200,
             'message': _isLoggingIn ? 'Logging in Successful' : 'Getting User Successful',
             'data': {
-                'id': _savedUserDoc.id,
+                'dealerCode': _userDoc.id,
                 'mobileNumber': _user.mobile,
                 'dateCreated': _user.dateCreated,
             },

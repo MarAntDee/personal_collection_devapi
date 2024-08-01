@@ -1,30 +1,25 @@
 import { firestore } from "firebase-admin";
 import { beginOTP, resendOTP, verifyOTP } from "./otp";
+import { FirUser } from "../models/user";
 
 export async function setPin(req: any, res: any) {
     try {
-        const _mobile: string | undefined = req.body.mobileNumber;
+        const _dealerCode: string | undefined = req.body.dealerCode;
         const _deviceId: string | undefined = req.body.deviceId;
         const _pin: string | undefined = req.body.mpin;
 
-        if (!_mobile || !_pin || !_deviceId) throw "Bad Request";
+        if (!_dealerCode || !_pin || !_deviceId) throw "Bad Request";
 
-        const _usersRef = firestore().collection("servers").doc("dev").collection("users");
-        const _savedUserDoc = (await _usersRef.where("mobile", "==", _mobile).limit(1).get()).docs[0];
-        const _newUserDoc = _usersRef.doc();
+        const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
 
-        var _userObj: {[k: string]: any} = {
+        if (!_userDoc.exists) throw "Builder not found";
+
+        const _user = _userDoc?.data() as FirUser | undefined;
+        if (_user == undefined) throw "Builder not found";
+
+        await _userDoc.ref.update({
             'pin': _pin,
-        };
-        if (_savedUserDoc == undefined) {
-            _userObj['mobile'] = _mobile;
-            _userObj['dateCreated'] = firestore.FieldValue.serverTimestamp();
-            _userObj['deviceId'] = _deviceId;
-        }
-        
-        await (_savedUserDoc?.ref ?? _newUserDoc).set(
-            _userObj, {merge: true},
-        );        
+        });    
 
         res.send({
             'status': true,
@@ -43,23 +38,25 @@ export async function setPin(req: any, res: any) {
 
 export async function forgotPin(req: any, res: any) {
     try {
-        const _mobile: string | undefined = req.body.mobileNumber;
+        const _dealerCode: string | undefined = req.body.dealerCode;
         const _deviceId: string | undefined = req.body.deviceId;
 
-        if (!_mobile || !_deviceId) throw "Bad Request";
+        if (!_dealerCode || !_deviceId) throw "Bad Request";
 
-        const _usersRef = firestore().collection("servers").doc("dev").collection("users");
-        const _savedUserDoc = (await _usersRef.where("mobile", "==", _mobile).limit(1).get()).docs[0];
+        const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
 
-        if (_savedUserDoc == undefined) throw "User not found";
+        if (!_userDoc.exists) throw "Builder not found";
+
+        const _user = _userDoc?.data() as FirUser | undefined;
+        if (_user == undefined) throw "Builder not found";
 
         res.send({
             'status': true,
             'code': 200,
             'message': 'Sending OTP for forgot pin',
             'data': {
-                "mobileNumber": _mobile,
-                "pincode": await beginOTP(_deviceId, _mobile, "FORGOT PIN"),
+                "mobileNumber": _user.mobile,
+                "pincode": await beginOTP(_deviceId, _user.mobile, "FORGOT PIN"),
             },
         });
     } catch (e) {
@@ -73,18 +70,25 @@ export async function forgotPin(req: any, res: any) {
 
 export async function resendForgotPin(req: any, res: any) {
     try {
-        const _mobile: string | undefined = req.body.mobileNumber;
+        const _dealerCode: string | undefined = req.body.dealerCode;
         const _deviceId: string | undefined = req.body.deviceId;
 
-        if (!_mobile || !_deviceId) throw "Bad Request";
+        if (!_dealerCode || !_deviceId) throw "Bad Request";
+
+        const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
+
+        if (!_userDoc.exists) throw "Builder not found";
+
+        const _user = _userDoc?.data() as FirUser | undefined;
+        if (_user == undefined) throw "Builder not found";
 
         res.send({
             'status': true,
             'code': 200,
             'message': 'Resending OTP Successful',
             'data': {
-                "mobileNumber": _mobile,
-                "pincode": await resendOTP(_deviceId, _mobile, "FORGOT PIN"),
+                "mobileNumber": _user.mobile,
+                "pincode": await resendOTP(_deviceId, _user.mobile, "FORGOT PIN"),
             },
         });
     } catch (e) {
