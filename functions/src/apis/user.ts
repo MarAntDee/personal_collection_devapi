@@ -35,6 +35,10 @@ export async function getUser(req: any, res: any) {
                 'dealerCode': _userDoc.id,
                 'mobileNumber': _user.mobile,
                 'dateCreated': _user.dateCreated,
+                'firstName': _user.firstName,
+                'lastName': _user.lastName,
+                'role': _user.role,
+                'address': _user.address,
             },
         });
 

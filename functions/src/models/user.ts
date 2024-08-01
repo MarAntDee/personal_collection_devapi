@@ -5,4 +5,12 @@ export interface FirUser extends firestore.DocumentData {
     pin?: string,
     dateCreated: firestore.Timestamp,
     deviceId: string,
+    firstName: string,
+    lastName: string,
+    role: string,
+    address: {
+        full: string,
+        landmark?: string,
+        coordinates: firestore.GeoPoint,
+    }
 }
