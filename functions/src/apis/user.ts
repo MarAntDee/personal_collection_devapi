@@ -8,7 +8,7 @@ export async function getUser(req: any, res: any) {
         const _pin: string | undefined = req.query.mpin;
         const _isLoggingIn: boolean = JSON.parse(req.query.isLoggingIn ?? "false");
 
-        if (!_dealerCode || !_deviceId || !_pin) throw "Bad Request";
+        if (!_dealerCode || !_deviceId || (_isLoggingIn && _pin == undefined)) throw "Bad Request";
 
         const _userDoc = await firestore().collection("servers").doc("dev").collection("users").doc(_dealerCode).get();
 
@@ -18,7 +18,7 @@ export async function getUser(req: any, res: any) {
         if (_user == undefined) throw "Builder not found";
         
         if (_user.pin == undefined) throw "Pin not yet set."
-        if (_user.pin != _pin) throw "Invalid Pin";
+        if (_isLoggingIn && _user.pin != _pin) throw "Invalid Pin";
         if (!_isLoggingIn && (_user.deviceId != _deviceId)) throw "Account used on another device";
 
         _user.deviceId = _deviceId!;
@@ -37,6 +37,7 @@ export async function getUser(req: any, res: any) {
                 'dateCreated': _user.dateCreated,
                 'firstName': _user.firstName,
                 'lastName': _user.lastName,
+                'pin': _user.pin,
                 'role': _user.role,
                 'address': _user.address,
             },
