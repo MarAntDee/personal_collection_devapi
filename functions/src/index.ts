@@ -7,6 +7,7 @@ import * as cors from "cors";
 import { checkBuilder, resendCheckBuilder, verifyCheckBuilder, } from "./apis/checkBuilder";
 import { forgotPin, resendForgotPin, setPin, verifyForgotPin } from "./apis/pin";
 import { getUser } from "./apis/user";
+import { getDepartments, getProducts } from "./apis/product";
 
 admin.initializeApp();
 admin.firestore().settings({timestampsInSnapshots: true});
@@ -31,5 +32,15 @@ app.put("/dev/ForgotPin", resendForgotPin);
 app.delete("/dev/ForgotPin", verifyForgotPin);
 
 app.get("/dev/User", getUser);
+
+app.get("/dev/Departments", getDepartments);
+
+app.get("/dev/Products", getProducts);
+
+//TODO:
+//GET PRODUCTS FUNCTION (ALL/BY DEPARTMENT/SEARCH TEXT)
+//GET DEPARTMENT FUNCTION
+//GET GROUPS FUNCTION
+//ADD TO CART
 
 exports.api = functions.region('asia-southeast1').https.onRequest(app);
