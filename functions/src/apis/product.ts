@@ -68,23 +68,27 @@ export async function getProducts(req: any, res: any) {
         else _initialProductDocs = (await _productReference.get()).docs;
 
         const _initialProductList = _initialProductDocs.map((doc) => {
+            var _info: {[k: string]: any} = {
+                'name': doc.data()['name'],
+                'desc': doc.data()['desc'],
+                'image': doc.data()['Image'],
+                'price': +(doc.data()['price'] ?? "0"),
+            };
             const _deptIds: string[] = doc.data()['category_ids'];
             const _depts = _deptIds.map((id) => {
                 return _departmentPayload.find((dept) => dept.id == id);
             });
 
-            const _discountIds: string[] = doc.data()['discount_ids'];
-            const _discount = _discountPayload.find((discount) => _discountIds.indexOf(discount.id) > -1);
+            _info['departments'] = _depts
+
+            if (doc.data()['discount_ids'] != null) {
+                const _discountIds: string[] = doc.data()['discount_ids'];
+                const _discount = _discountPayload.find((discount) => _discountIds.indexOf(discount.id) > -1);
+                _info['discount'] = _discount;
+            }
             return {
                 'id': doc.id,
-                'info': {
-                    'name': doc.data()['name'],
-                    'desc': doc.data()['desc'],
-                    'image': doc.data()['Image'],
-                    'price': +(doc.data()['price'] ?? "0"),
-                    'departments': _depts,
-                    'discount': _discount
-                },
+                'info': _info,
             } ;
         },);
 
