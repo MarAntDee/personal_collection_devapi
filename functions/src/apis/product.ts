@@ -40,17 +40,7 @@ export async function getProducts(req: any, res: any) {
         if (!role) throw "Bad Request";
 
         const _productReference = firestore().collection("servers").doc("dev").collection("products");
-        const _departmentReference = firestore().collection("servers").doc("dev").collection("departments");
         const _discountReference = firestore().collection("servers").doc("dev").collection("discounts").where('role', '==', role);
-
-        const _departments = (await _departmentReference.get()).docs;
-        const _departmentPayload = _departments.map((dept) => {
-            return {
-                'id': dept.id,
-                'name': dept.data()['name'],
-                'image': dept.data()['image'],
-            };
-        });
         const _discountPayload = (await _discountReference.get()).docs.map((discount) => {
             return {
                 'id': discount.id,
@@ -73,13 +63,8 @@ export async function getProducts(req: any, res: any) {
                 'desc': doc.data()['desc'],
                 'image': doc.data()['Image'],
                 'price': +(doc.data()['price'] ?? "0"),
+                'departmentIds': doc.data()['category_ids']
             };
-            const _deptIds: string[] = doc.data()['category_ids'];
-            const _depts = _deptIds.map((id) => {
-                return _departmentPayload.find((dept) => dept.id == id);
-            });
-
-            _info['departments'] = _depts
 
             if (doc.data()['discount_ids'] != null) {
                 const _discountIds: string[] = doc.data()['discount_ids'];
@@ -131,7 +116,73 @@ export async function getProducts(req: any, res: any) {
             },
         });
     } catch (e) {
-        console.log("OOPS, ERROR");
+        res.send({
+            'status': false,
+            'code': 400,
+            'message': e,
+        });
+    }
+}
+
+export async function getProductGroups(req: any, res: any) {
+    try {
+        const role: string = req.query.role;
+        if (!role) throw "Bad Request";
+        
+        const _dev = firestore().collection("servers").doc("dev");
+        const _groupCollections = await _dev.collection("groups").get();
+
+        //GET ALL PRODUCTS
+        const _allProducts = (await _dev.collection("products").get()).docs;
+        const _discountReference = _dev.collection("discounts").where('role', '==', role);
+        const _discountPayload = (await _discountReference.get()).docs.map((discount) => {
+            return {
+                'id': discount.id,
+                'name': discount.data()['name'],
+                'desc': discount.data()['desc'],
+                'percent': +(discount.data()['percent'] ?? '0'),
+            };
+        });
+
+        const _productList = _allProducts.map((doc) => {
+            var _info: {[k: string]: any} = {
+                'name': doc.data()['name'],
+                'desc': doc.data()['desc'],
+                'image': doc.data()['Image'],
+                'price': +(doc.data()['price'] ?? "0"),
+                'departmentIds': doc.data()['category_ids']
+            };
+
+            if (doc.data()['discount_ids'] != null) {
+                const _discountIds: string[] = doc.data()['discount_ids'];
+                const _discount = _discountPayload.find((discount) => _discountIds.indexOf(discount.id) > -1);
+                _info['discount'] = _discount;
+            }
+            return {
+                'id': doc.id,
+                'info': _info,
+            } ;
+        },);
+
+        const _groups = _groupCollections.docs.map((doc) => {
+            const productIds: string[] = doc.data()['product_ids'];
+            const _products = productIds.map((id) => _productList.find((raw) => raw.id == id));
+            return {
+                'id': doc.id,
+                'name': doc.data()['name'],
+                'format': doc.data()['format_id'],
+                'products': _products,
+            };
+        });
+        res.send({
+            'status': true,
+            'code': 200,
+            'message': 'Getting Product Groups Successful',
+            'data': {
+                'groups': _groups,
+            },
+        });
+    } catch (e) {
         res.send({
             'status': false,
             'code': 400,
