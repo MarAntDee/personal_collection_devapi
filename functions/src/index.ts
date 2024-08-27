@@ -8,6 +8,7 @@ import { checkBuilder, resendCheckBuilder, verifyCheckBuilder, } from "./apis/ch
 import { forgotPin, resendForgotPin, setPin, verifyForgotPin } from "./apis/pin";
 import { getUser } from "./apis/user";
 import { getDepartments, getProductGroups, getProducts } from "./apis/product";
+import { addToFavorite, getFavoriteList } from "./apis/favorite";
 
 admin.initializeApp();
 admin.firestore().settings({timestampsInSnapshots: true});
@@ -38,10 +39,15 @@ app.get("/dev/Departments", getDepartments);
 app.get("/dev/Products", getProducts);
 app.get("/dev/ProductGroups", getProductGroups);
 
+app.get("/dev/Favorites", getFavoriteList);
+app.post("/dev/Favorites", addToFavorite);
+
+// app.get("/dev/Cart", getCartList);
+// app.post("/dev/Cart", addToCart);
+
 //TODO:
-//GET PRODUCTS FUNCTION (ALL/BY DEPARTMENT/SEARCH TEXT)
-//GET DEPARTMENT FUNCTION
-//GET GROUPS FUNCTION
+//GET FAVORITES
+//ADD TO FAVORITE
 //ADD TO CART
 
 exports.api = functions.region('asia-southeast1').https.onRequest(app);
