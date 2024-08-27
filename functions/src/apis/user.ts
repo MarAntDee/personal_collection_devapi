@@ -27,6 +27,10 @@ export async function getUser(req: any, res: any) {
             {'deviceId': _deviceId},
         );        
 
+        const _favoriteCollection = await _userDoc.ref.collection("favorites").get();
+        var _favoriteIds: string[] = [];
+        if (!_favoriteCollection.empty) _favoriteIds = _favoriteCollection.docs.map((doc) => doc.id);
+
         res.send({
             'status': true,
             'code': 200,
@@ -40,6 +44,7 @@ export async function getUser(req: any, res: any) {
                 'pin': _user.pin,
                 'role': _user.role,
                 'address': _user.address,
+                'favorites': _favoriteIds,
             },
         });
 
