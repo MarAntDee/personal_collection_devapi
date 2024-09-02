@@ -9,6 +9,7 @@ import { forgotPin, resendForgotPin, setPin, verifyForgotPin } from "./apis/pin"
 import { getUser } from "./apis/user";
 import { getDepartments, getProductGroups, getProducts } from "./apis/product";
 import { addToFavorite, getFavoriteList } from "./apis/favorite";
+import { updateCart } from "./apis/cart";
 
 admin.initializeApp();
 admin.firestore().settings({timestampsInSnapshots: true});
@@ -43,11 +44,9 @@ app.get("/dev/Favorites", getFavoriteList);
 app.post("/dev/Favorites", addToFavorite);
 
 // app.get("/dev/Cart", getCartList);
-// app.post("/dev/Cart", addToCart);
+app.post("/dev/Cart", updateCart);
 
 //TODO:
-//GET FAVORITES
-//ADD TO FAVORITE
 //ADD TO CART
 
 exports.api = functions.region('asia-southeast1').https.onRequest(app);
