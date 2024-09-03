@@ -43,7 +43,7 @@ export async function getFavoriteList(req: any, res: any) {
         res.send({
             'status': true,
             'code': 200,
-            'message': 'Getting Product Groups Successful',
+            'message': 'Getting Favorites Successful',
             'data': {
                 'favorites': _productList,
             },
