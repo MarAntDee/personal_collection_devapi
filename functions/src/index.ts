@@ -10,6 +10,7 @@ import { getUser } from "./apis/user";
 import { getDepartments, getProductGroups, getProducts } from "./apis/product";
 import { addToFavorite, getFavoriteList } from "./apis/favorite";
 import { getCart, updateCart } from "./apis/cart";
+import { addAddress, editAddress, getAddressBook, removeAddress, setAddressToMain } from "./apis/address";
 
 admin.initializeApp();
 admin.firestore().settings({timestampsInSnapshots: true});
@@ -46,7 +47,10 @@ app.post("/dev/Favorites", addToFavorite);
 app.get("/dev/Cart", getCart);
 app.post("/dev/Cart", updateCart);
 
-//TODO:
-//ADD TO CART
+app.get("/dev/AddressBook", getAddressBook);
+app.post("/dev/AddressBook", addAddress);
+app.patch("/dev/AddressBook", editAddress);
+app.delete("/dev/AddressBook", removeAddress);
+app.put("/dev/AddressBook", setAddressToMain);
 
 exports.api = functions.region('asia-southeast1').https.onRequest(app);
