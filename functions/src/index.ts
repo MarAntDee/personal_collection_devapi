@@ -7,6 +7,9 @@ import * as cors from "cors";
 import { checkBuilder, resendCheckBuilder, verifyCheckBuilder, } from "./apis/checkBuilder";
 import { forgotPin, resendForgotPin, setPin, verifyForgotPin } from "./apis/pin";
 import { getUser } from "./apis/user";
+import { getDepartments, getProductGroups, getProducts } from "./apis/product";
+import { addToFavorite, getFavoriteList } from "./apis/favorite";
+import { getCart, updateCart } from "./apis/cart";
 
 admin.initializeApp();
 admin.firestore().settings({timestampsInSnapshots: true});
@@ -31,5 +34,19 @@ app.put("/dev/ForgotPin", resendForgotPin);
 app.delete("/dev/ForgotPin", verifyForgotPin);
 
 app.get("/dev/User", getUser);
+
+app.get("/dev/Departments", getDepartments);
+
+app.get("/dev/Products", getProducts);
+app.get("/dev/ProductGroups", getProductGroups);
+
+app.get("/dev/Favorites", getFavoriteList);
+app.post("/dev/Favorites", addToFavorite);
+
+app.get("/dev/Cart", getCart);
+app.post("/dev/Cart", updateCart);
+
+//TODO:
+//ADD TO CART
 
 exports.api = functions.region('asia-southeast1').https.onRequest(app);
