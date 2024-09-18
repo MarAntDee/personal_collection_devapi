@@ -45,12 +45,40 @@ export async function getAddressBook(req: any, res: any) {
 export async function addAddress(req: any, res: any) {
     try {
         //REQUEST BODY: DEALER CODE, NAME, COORDINATES, FULL, LANDMARK, ICON
+        const _dealerCode: string | undefined = req.body.dealerCode;
+        const _name: string | undefined = req.body.name;
+        const _full: string | undefined = req.body.full;
+        const _landmark: string | undefined = req.body.landmark;
+        if (!_dealerCode || !_name || !_full || !req.body.coordinates) throw "Bad Request";
+
+        const _addressRef = firestore().collection("servers").doc("dev").collection('users').doc(_dealerCode).collection('addresses').doc();
+
+        console.log(`latitude: ${req.body.coordinates['latitude']}\nlongitude: ${req.body.coordinates['longitude']}`);
+
+        const _coordinates = JSON.parse(req.body.coordinates)
+        const _geopoint: firestore.GeoPoint = new firestore.GeoPoint(_coordinates['latitude'], _coordinates['longitude']);
+
+        var _address: {[k: string]: any} = {
+            'name': _name,
+            'full': _full,
+            'coordinates': {
+                'latitude': _geopoint.latitude,
+                'longitude': _geopoint.longitude,
+            },
+        };
+        if (_landmark) _address['landmark'] = _landmark;
+
+        await _addressRef.create(_address);
+
         res.send({
             'status': true,
             'code': 200,
             'message': 'Adding Address Successful',
             'data': {
-                'address': {},
+                'address': {
+                    'id': _addressRef.id,
+                    'info': _address,
+                },
             },
         });
     } catch (e) {
