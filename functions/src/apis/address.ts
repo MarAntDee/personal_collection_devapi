@@ -157,21 +157,48 @@ export async function removeAddress(req: any, res: any) {
         //IF ADDRESS IS MAIN: REPLACE MAIN WITH NEXT ADDRESS
         //IF ADDRESS IS ONLY ADDRESS: SEND ERROR
         //QUERY PARAMETER: DEALER CODE, ID
-        // const _dealerCode: string | undefined = req.body.dealerCode;
-        // const _addressId: string | undefined = req.body.id;
-        // const _nextAddressId: string | undefined = req.body.nextId;
+        const _dealerCode: string | undefined = req.query.dealerCode;
+        const _addressId: string | undefined = req.query.id;
 
-        // if (!_dealerCode || !_addressId) throw "Bad Request";
+        if (!_dealerCode || !_addressId) throw "Bad Request";
 
-        // const _userRef = firestore().collection("servers").doc("dev").collection('users').doc(_dealerCode);
-        // const _userSnap = await _userRef.get();
-        // if (!_userSnap.exists) throw "User not found";
+        const _userRef = firestore().collection("servers").doc("dev").collection('users').doc(_dealerCode);
+        const _userSnap = await _userRef.get();
+        if (!_userSnap.exists) throw "User not found";
+
+        const _addressesCollection = await _userRef.collection('addresses').get();
+
+        if (!_addressesCollection.docs.some((element) => element.id == _addressId)) throw "Address not found";
+        if (_addressesCollection.docs.length < 2) throw "Can not delete only address";
         
-        // const _addressRef = _userRef.collection('addresses').doc(_addressId);
-        // const _addressSnap = await _addressRef.get();
-        // if (!_addressSnap.exists) throw "Address not found";
+        const _addressRef = _userRef.collection('addresses').doc(_addressId);
 
-        // const _mainAddressId = _userSnap.data()!.address?.id;
+        const _userAddressId = _userSnap.data()!['address']['id'];
+
+        if (_userAddressId == _addressId) {
+            const _nextAddress = _addressesCollection.docs.find((element) => element.id != _addressId);
+            if (!_nextAddress) throw "Can not delete only address";
+
+            const _geopoint: firestore.GeoPoint = new firestore.GeoPoint(_nextAddress.data()['coordinates']['latitude'], _nextAddress.data()['coordinates']['longitude']);
+
+            var _newAddress: {[k: string]: any} = {
+                "id": _nextAddress.id,
+                "name": _nextAddress.data()['name'],
+                "full": _nextAddress.data()['full'],
+                "coordinates": _geopoint,
+            };
+
+            if (_nextAddress.data()['landmark'] != undefined) _newAddress['landmark'] = _nextAddress.data()['landmark'];
+
+            await _userRef.update({
+                'address': _newAddress,
+            });
+        } else {
+            await _userRef.update({
+                'address': firestore.FieldValue.delete(),
+            });
+        }
+        await _addressRef.delete();
 
         res.send({
             'status': true,
