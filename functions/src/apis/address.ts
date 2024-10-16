@@ -55,8 +55,7 @@ export async function addAddress(req: any, res: any) {
 
         console.log(`latitude: ${req.body.coordinates['latitude']}\nlongitude: ${req.body.coordinates['longitude']}`);
 
-        const _coordinates = JSON.parse(req.body.coordinates)
-        const _geopoint: firestore.GeoPoint = new firestore.GeoPoint(_coordinates['latitude'], _coordinates['longitude']);
+        const _geopoint: firestore.GeoPoint = new firestore.GeoPoint(req.body.coordinates['latitude'], req.body.coordinates['longitude']);
 
         var _address: {[k: string]: any} = {
             'name': _name,
