@@ -61,10 +61,7 @@ export async function addAddress(req: any, res: any) {
         var _address: {[k: string]: any} = {
             'name': _name,
             'full': _full,
-            'coordinates': {
-                'latitude': _geopoint.latitude,
-                'longitude': _geopoint.longitude,
-            },
+            'coordinates': _geopoint,
         };
         if (_landmark) _address['landmark'] = _landmark;
 
@@ -93,14 +90,55 @@ export async function addAddress(req: any, res: any) {
 //EDIT ADDRESS
 export async function editAddress(req: any, res: any) {
     try {
-        //IF ADDRESS IS MAIN, REPLACE VALUE IN ADDRESS COLLECTION AND USER DOCUMENT
-        //REQUEST BODY: DEALER CODE, ID, NAME?, COORDINATES?, FULL?, LANDMARK?, ICON?
+        const _dealerCode: string | undefined = req.body.dealerCode;
+        const _addressId: string | undefined = req.body.id;
+        const _name: string | undefined = req.body.name;
+        const _full: string | undefined = req.body.full;
+        const _landmark: string | undefined = req.body.landmark;
+        if (!_dealerCode || !_addressId) throw "Bad Request";
+
+        const _userRef = firestore().collection("servers").doc("dev").collection('users').doc(_dealerCode);
+        const _addressRef = _userRef.collection('addresses').doc(_addressId);
+
+        const _addressSnap = await _addressRef.get();
+
+        if (!_addressSnap.exists) throw "Address not found";
+
+        var _address: {[k: string]: any} = {};
+        if (_name) _address['name'] = _name;
+        if (_full) _address['full'] = _full;
+        if (_landmark) _address['landmark'] = _landmark;
+
+        if (req.body.coordinates) {
+            console.log(`latitude: ${req.body.coordinates['latitude']}\nlongitude: ${req.body.coordinates['longitude']}`);
+            const _geopoint: firestore.GeoPoint = new firestore.GeoPoint(req.body.coordinates['latitude'], req.body.coordinates['longitude']);
+            console.log(`GEOPOINT LAT: ${_geopoint.latitude} LONG: ${_geopoint.longitude}`);
+            _address['coordinates'] = _geopoint;
+            console.log(_address);
+        }
+
+        _addressRef.update(_address);
+
+        const _userSnap = await _userRef.get();
+        if (!_userSnap.exists) throw "User not found";
+        const _mainAddressId = _userSnap.data()!.address?.id;
+
+        if (_mainAddressId == _addressId) {
+            _userRef.update({
+                "address": _address
+            });
+        }
+        
         res.send({
             'status': true,
             'code': 200,
             'message': 'Editing Address Successful',
             'data': {
-                'address': {},
+                'address': {
+                    'id': _addressId,
+                    'info': _address,
+                    'setToMain': _mainAddressId == _addressId
+                },
             },
         });
     } catch (e) {
