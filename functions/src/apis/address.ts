@@ -124,11 +124,12 @@ export async function editAddress(req: any, res: any) {
         const _mainAddressId = _userSnap.data()!.address?.id;
 
         if (_mainAddressId == _addressId) {
+            _address['id'] = _addressId;
             _userRef.update({
                 "address": _address
             });
         }
-        
+
         res.send({
             'status': true,
             'code': 200,
@@ -156,6 +157,22 @@ export async function removeAddress(req: any, res: any) {
         //IF ADDRESS IS MAIN: REPLACE MAIN WITH NEXT ADDRESS
         //IF ADDRESS IS ONLY ADDRESS: SEND ERROR
         //QUERY PARAMETER: DEALER CODE, ID
+        // const _dealerCode: string | undefined = req.body.dealerCode;
+        // const _addressId: string | undefined = req.body.id;
+        // const _nextAddressId: string | undefined = req.body.nextId;
+
+        // if (!_dealerCode || !_addressId) throw "Bad Request";
+
+        // const _userRef = firestore().collection("servers").doc("dev").collection('users').doc(_dealerCode);
+        // const _userSnap = await _userRef.get();
+        // if (!_userSnap.exists) throw "User not found";
+        
+        // const _addressRef = _userRef.collection('addresses').doc(_addressId);
+        // const _addressSnap = await _addressRef.get();
+        // if (!_addressSnap.exists) throw "Address not found";
+
+        // const _mainAddressId = _userSnap.data()!.address?.id;
+
         res.send({
             'status': true,
             'code': 200,
@@ -174,12 +191,51 @@ export async function removeAddress(req: any, res: any) {
 export async function setAddressToMain(req: any, res: any) {
     try {
         //REQUEST BODY: DEALER CODE, ID
+        const _dealerCode: string | undefined = req.body.dealerCode;
+        const _addressId: string | undefined = req.body.id;
+
+        if (!_dealerCode || !_addressId) throw "Bad Request";
+
+        const _userRef = firestore().collection("servers").doc("dev").collection('users').doc(_dealerCode);
+        const _addressRef = _userRef.collection('addresses').doc(_addressId);
+
+        const _addressSnap = await _addressRef.get();
+        if (!_addressSnap.exists) throw "Address not found";
+        const _addressData = _addressSnap.data()!;
+
+        console.log("ADDRESS DATA GET");
+
+        if (!_addressData['name'] || !_addressData['full'] || !_addressData['coordinates']) throw "Incomplete Address Info";
+
+        console.log("ADDRESS DATA COMPLETE");
+
+        const _coordinates = _addressData['coordinates'];
+        console.log(`latitude: ${_coordinates['_latitude']}\nlongitude: ${_coordinates['_longitude']}`);
+        const _geopoint: firestore.GeoPoint = new firestore.GeoPoint(_coordinates['_latitude'], _coordinates['_longitude']);
+        console.log(`GEOPOINT LAT: ${_geopoint.latitude} LONG: ${_geopoint.longitude}`);
+
+        var _address: {[k: string]: any} = {
+            "id": _addressId,
+            "name": _addressData['name'],
+            "full": _addressData['full'],
+            "coordinates": _geopoint,
+        };
+
+        if (_addressData['landmark'] != undefined) _address['landmark'] = _addressData['landmark'];
+
+        console.log(_address);
+
+        await _userRef.update({
+            'address': _address,
+        });
+
+
         res.send({
             'status': true,
             'code': 200,
             'message': 'Setting Address to Main Successful',
             'data': {
-                'user': {},
+                'user': (await _userRef.get()).data(),
             },
         });
     } catch (e) {
